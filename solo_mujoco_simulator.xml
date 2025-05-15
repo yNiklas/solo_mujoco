@@ -1,0 +1,9 @@
+<library path="solo_mujoco">
+  <class name="solo_mujoco/Simulator"
+         type="solo_mujoco::Simulator"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+        A simulation environment for Solo8
+    </description>
+  </class>
+</library>
