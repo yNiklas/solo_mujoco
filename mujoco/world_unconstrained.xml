@@ -1,0 +1,28 @@
+<mujoco>
+  <include file="shared.xml"></include>
+  <worldbody>
+    <include file="floorplane.xml"></include>
+    <body name="sim_robot" pos="0 0 0">
+      <freejoint name="root"/>
+      <include file="solo8_robot.xml"></include>
+    </body>
+  </worldbody>
+  <include file="actuators.xml"/>
+  <keyframe>
+    <!-- Joint Order in Mujoco:
+      
+    -->
+    <key name="initial_joint_positions" time="0"
+      qpos="0.0 0.0 0.5 0.0 0.0 0.0 0.0
+      0
+      1
+      0
+      1
+      0
+      1
+      0
+      1
+      " />
+  </keyframe>
+  <include file="contacts.xml"/>
+</mujoco>

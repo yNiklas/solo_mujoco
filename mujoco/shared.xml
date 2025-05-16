@@ -1,0 +1,13 @@
+<include>
+  <compiler angle="radian" meshdir="../meshes/stl/"/>
+
+  <asset>
+    <mesh name="solo_body" file="with_foot/solo_body.stl"/>
+    <mesh name="solo_upper_leg_left_side" file="with_foot/solo_upper_leg_left_side.stl"/>
+    <mesh name="solo_upper_leg_rigth_side" file="with_foot/solo_upper_leg_rigth_side.stl"/>
+    <mesh name="solo_lower_leg_left_side" file="with_foot/solo_lower_leg_left_side.stl"/>
+    <mesh name="solo_lower_leg_rigth_side" file="with_foot/solo_lower_leg_rigth_side.stl"/>
+
+    <texture name="floorplane" reflectance="0.5" texrepeat="11" texture="texplane" texuniform="true"/>
+  </asset>
+</include>
