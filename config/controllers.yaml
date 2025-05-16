@@ -5,17 +5,9 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    position_controller:
-      type: position_controllers/JointGroupPositionController
-
-    velocity_controller:
-      type: velocity_controllers/JointGroupVelocityController
-
-    effort_controller:
-      type: effort_controllers/JointGroupEffortController
-
 position_controller:
   ros__parameters:
+    type: position_controllers/JointGroupPositionController
     joints:
       - FL_HFE
       - FL_KFE
@@ -29,6 +21,7 @@ position_controller:
 
 velocity_controller:
   ros__parameters:
+    type: velocity_controllers/JointGroupVelocityController
     joints:
       - FL_HFE
       - FL_KFE
@@ -42,6 +35,7 @@ velocity_controller:
 
 effort_controller:
   ros__parameters:
+    type: effort_controllers/JointGroupEffortController
     joints:
       - FL_HFE
       - FL_KFE

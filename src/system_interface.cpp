@@ -20,7 +20,7 @@ hardware_interface::CallbackReturn Simulator::on_init(const hardware_interface::
     }
 
     // Start simulation in parallel
-    m_mujoco_model_xml_path = info_.hardware_parameters["mujoco_model_xml_path"];
+    m_mujoco_model_xml_path = info_.hardware_parameters["mujoco_world_xml_path"];
     m_meshes_path = info_.hardware_parameters["meshes_path"];
     // TODO: start sim
 
@@ -93,7 +93,10 @@ hardware_interface::return_type Simulator::write(
     [[maybe_unused]] const rclcpp::Duration &duration) {
     for (const auto &[joint_name, joint_desc] : joint_command_interfaces_) {
         // TODO: send command value to simulator
-        std::cout << "got " << get_command(joint_name) << " for " << joint_name << std::endl;
+        double cmd = get_command(joint_name);
+        if (!std::isnan(cmd)) {
+            std::cout << "got " << cmd << " for " << joint_name << std::endl;
+        }
     }
     return hardware_interface::return_type::OK;
 }

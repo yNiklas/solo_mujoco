@@ -116,8 +116,8 @@
     <xacro:if value="$(arg sim)">
       <hardware>
         <plugin>solo_mujoco/Simulator</plugin>
-        <param name="mujoco_model_xml_path">$(arg mujoco_model)</param>
-        <param name="meshes_path">$(arg mesh_directory)</param>
+        <param name="mujoco_world_xml_path">$(arg mujoco_world_xml_path)</param>
+        <param name="meshes_path">$(arg meshes_path)</param>
       </hardware>
     </xacro:if>
   </ros2_control>
