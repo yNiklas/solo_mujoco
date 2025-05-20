@@ -16,17 +16,15 @@ find_package(PkgConfig REQUIRED)
 pkg_search_module(GLFW REQUIRED glfw3)
 find_package(GLEW REQUIRED)
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+# MuJoCo
+if(NOT DEFINED MUJOCO_DIR)
+        set(MUJOCO_DIR "$ENV{HOME}/mujoco-3.3.2")
+        message(WARNING "MUJOCO_DIR not specified. Using default ${MUJOCO_DIR}")
 endif()
+set(MUJOCO_INCLUDE_DIRS ${MUJOCO_DIR}/include)
+set(MUJOCO_LIBRARIES
+        ${MUJOCO_DIR}/lib/libmujoco.so
+)
 
 # RPATH
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -54,8 +52,34 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp
 )
 
+target_link_libraries(${PROJECT_NAME}
+  mujoco_simulator
+)
+
 pluginlib_export_plugin_description_file(hardware_interface solo_mujoco_simulator.xml)
 
+#-
+add_library(mujoco_simulator SHARED
+        src/mujoco_simulator.cpp
+)
+
+target_include_directories(mujoco_simulator PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        ${MUJOCO_INCLUDE_DIRS}
+        ${GLFW_INCLUDE_DIRS}
+)
+
+ament_target_dependencies(mujoco_simulator PUBLIC
+  rclcpp
+  sensor_msgs
+)
+
+# X11 OpenGL: link with libmujoco210.so, libglew.so, libGL.so
+target_link_libraries(mujoco_simulator PUBLIC
+        ${MUJOCO_LIBRARIES}
+        ${GLFW_LIBRARIES}
+)
 
 # Install
 install(
@@ -69,6 +93,11 @@ install(
 install(
   TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS mujoco_simulator
+  DESTINATION lib
 )
 
 ament_package()

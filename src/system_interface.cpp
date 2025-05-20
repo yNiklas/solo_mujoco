@@ -3,6 +3,8 @@
 #include <thread>
 #include <vector>
 
+#include "solo_mujoco/mujoco_simulator.hpp"
+
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system.hpp"
@@ -22,7 +24,9 @@ hardware_interface::CallbackReturn Simulator::on_init(const hardware_interface::
     // Start simulation in parallel
     m_mujoco_model_xml_path = info_.hardware_parameters["mujoco_world_xml_path"];
     m_meshes_path = info_.hardware_parameters["meshes_path"];
-    // TODO: start sim
+    
+    m_simulation = std::thread(MuJoCoSimulator::startSimulation, m_mujoco_model_xml_path, m_meshes_path);
+    m_simulation.detach();
 
     if (info_.joints.size() != 8) {
         RCLCPP_ERROR(rclcpp::get_logger(NODE_NAME),
@@ -73,6 +77,14 @@ hardware_interface::CallbackReturn Simulator::on_init(const hardware_interface::
                        hardware_interface::HW_IF_EFFORT);
           return hardware_interface::CallbackReturn::ERROR;
         }
+
+        // Set gains in the simulator
+        double p = std::stod(joint.parameters.at("p"));
+        double d = std::stod(joint.parameters.at("d"));
+        double t = std::stod(joint.parameters.at("t"));
+        MuJoCoSimulator::getInstance().specifyKpGain(joint.name, p);
+        MuJoCoSimulator::getInstance().specifyKdGain(joint.name, d);
+        MuJoCoSimulator::getInstance().specifyKtGain(joint.name, t);
     }
 
     return hardware_interface::CallbackReturn::SUCCESS;
@@ -81,9 +93,9 @@ hardware_interface::CallbackReturn Simulator::on_init(const hardware_interface::
 hardware_interface::return_type Simulator::read(
     [[maybe_unused]] const rclcpp::Time &time,
     [[maybe_unused]] const rclcpp::Duration &period) {
-    for (const auto &[joint_name, joint_desc] : joint_state_interfaces_) {
-        // TODO: read from simulator
-        set_state(joint_name, 0.5);
+    // The interface_name follows the form <joint_name>/<interface>, e.g., FL_HFE/position
+    for (const auto &[interface_name, joint_desc] : joint_state_interfaces_) {
+        set_state(interface_name, MuJoCoSimulator::getInstance().getJointState(interface_name));
     }
     return hardware_interface::return_type::OK;
 }
@@ -91,11 +103,12 @@ hardware_interface::return_type Simulator::read(
 hardware_interface::return_type Simulator::write(
     [[maybe_unused]] const rclcpp::Time &time,
     [[maybe_unused]] const rclcpp::Duration &duration) {
-    for (const auto &[joint_name, joint_desc] : joint_command_interfaces_) {
+    // The interface_name follows the form <joint_name>/<interface>, e.g., FL_HFE/position
+    for (const auto &[interface_name, joint_desc] : joint_command_interfaces_) {
         // TODO: send command value to simulator
-        double cmd = get_command(joint_name);
+        double cmd = get_command(interface_name);
         if (!std::isnan(cmd)) {
-            std::cout << "got " << cmd << " for " << joint_name << std::endl;
+            MuJoCoSimulator::getInstance().acceptROS2ControlTarget(interface_name, cmd);
         }
     }
     return hardware_interface::return_type::OK;
