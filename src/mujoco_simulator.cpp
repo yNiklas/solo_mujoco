@@ -28,7 +28,7 @@ void MuJoCoSimulator::controlCallback(
             double targetTorque = interface_name_to_target[std::string(joint_name + "/effort")];
 
             // Debug output
-            //std::cout << i << " " << joint_name
+            //std::cout << i << "/" << m->nu << " " << joint_name
             //    << ": pos[" << currentPos << " -> " << targetPos << "]"
             //    << " vel[" << currentVel << " -> " << targetVel << "]"
             //    << " eff[->" << targetTorque << "]"

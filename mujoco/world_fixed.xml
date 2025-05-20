@@ -1,0 +1,33 @@
+<mujoco>
+  <include file="shared.xml"></include>
+  <worldbody>
+    <include file="floorplane.xml"></include>
+    <body name="anchor" pos="0 0 0.5">
+      <geom type="sphere" size="0.05" rgba="1 0 0 0"/>
+    </body>
+    <body name="sim_robot" pos="0 0 0.5">
+      <include file="solo8_robot.xml"></include>
+    </body>
+  </worldbody>
+  <equality>
+    <connect body1="anchor" body2="sim_robot" anchor="0 0 0"/>
+  </equality>
+  <include file="actuators.xml"/>
+  <keyframe>
+    <!-- Joint Order in Mujoco:
+      
+    -->
+    <key name="initial_joint_positions" time="0"
+      qpos="
+      0
+      0
+      0
+      0
+      0
+      0
+      0
+      0
+      " />
+  </keyframe>
+  <include file="contacts.xml"/>
+</mujoco>
