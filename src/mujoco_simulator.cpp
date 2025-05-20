@@ -10,6 +10,19 @@ void MuJoCoSimulator::staticControlCallback(const mjModel *m, mjData *d) {
     getInstance().controlCallback(m, d);
 }
 
+void MuJoCoSimulator::initializeFrameAndTargetBuffers() {
+    // Set XML-defined initial qpos into simulation keyframe
+    mju_copy(d->qpos, m->key_qpos, m->nq);
+
+    for (int i=0; i<m->njnt; i++) {
+        std::string name = m->names + m->name_jntadr[i];
+        int qpos_idx = m->jnt_qposadr[i];
+
+        // Set initial qpos as targets to prevent instant adjustment to (0, 0, ...) by the control loop before any targets from ROS2-control arrive
+        interface_name_to_target[std::string(name + "/position")] = m->key_qpos[qpos_idx];
+    }
+}
+
 // Control loop
 void MuJoCoSimulator::controlCallback(
     [[maybe_unused]] const mjModel *m,
@@ -28,14 +41,14 @@ void MuJoCoSimulator::controlCallback(
             double targetTorque = interface_name_to_target[std::string(joint_name + "/effort")];
 
             // Debug output
-            std::cout << i << "/" << m->nu << " " << joint_name
-                << ": pos[" << currentPos << " -> " << targetPos << "]"
-                << " vel[" << currentVel << " -> " << targetVel << "]"
-                << " eff[->" << targetTorque << "]"
-                << " | Kp=" << k_p << ", Kd=" << k_d << ", Kt=" << k_t
-                << std::endl;
+            //std::cout << i << "/" << m->nu << " " << joint_name
+            //    << ": pos[" << currentPos << " -> " << targetPos << "]"
+            //    << " vel[" << currentVel << " -> " << targetVel << "]"
+            //    << " eff[->" << targetTorque << "]"
+            //    << " | Kp=" << k_p << ", Kd=" << k_d << ", Kt=" << k_t
+            //    << std::endl;
 
-            // Since the joints are <motor> actuators in etc/actuators.xml, d->ctrl[i] sets the torque of
+            // Since the joints are <motor> actuators in mujoco/actuators.xml, d->ctrl[i] sets the torque of
             // the i'th joint
             d->ctrl[i] =
                 k_p * (targetPos - currentPos) +
@@ -72,8 +85,7 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
     }
 
     d = mj_makeData(m);
-    // Set XML-defined qpos into simulation keyframe
-    mju_copy(d->qpos, m->key_qpos, m->nq);
+    initializeFrameAndTargetBuffers();
 
     // Init GLFW and create window
     if (!glfwInit()) {
@@ -91,6 +103,9 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
 
     mjv_makeScene(m, &scn, 2000);
     mjr_makeContext(m, &con, mjFONTSCALE_150);
+
+    // Install callbacks for GLFW window
+    glfwSetKeyCallback(window, staticKeyboardCallback);
 
     // Connect our control callback to MuJoCo
     mjcb_control = MuJoCoSimulator::staticControlCallback;
@@ -179,6 +194,30 @@ void MuJoCoSimulator::specifyKtGain(const std::string joint_name, const double g
     if (gain_buffer_mutex.try_lock()) {
         joint_name_to_k_t[joint_name] = gain;
         gain_buffer_mutex.unlock();
+    }
+}
+
+// GLFW window controls
+void MuJoCoSimulator::staticKeyboardCallback(
+    GLFWwindow *window,
+    int key,
+    int scancode,
+    int act,
+    int mods) {
+    getInstance().keyboardCallback(window, key, scancode, act, mods);
+}
+
+void MuJoCoSimulator::keyboardCallback(
+    [[maybe_unused]] GLFWwindow *window,
+    [[maybe_unused]] int key,
+    [[maybe_unused]] int scancode,
+    [[maybe_unused]] int act,
+    [[maybe_unused]] int mods) {
+    // backspace-press resets the simulation
+    if (act == GLFW_PRESS && key == GLFW_KEY_BACKSPACE) {
+      mj_resetData(m, d);
+      initializeFrameAndTargetBuffers();
+      mj_forward(m, d);
     }
 }
 }

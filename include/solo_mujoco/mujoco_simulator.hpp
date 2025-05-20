@@ -14,6 +14,8 @@ private:
     // This simulator is a singleton, so the system_interface plugin can easily use it to read states and write commands
     MuJoCoSimulator();
 
+    void initializeFrameAndTargetBuffers();
+
     // Buffers the joint states (d->qpos & d->qvel) into the interface_name_to_state map
     void bufferStates();
 
@@ -75,6 +77,10 @@ public:
     // Simulation itself, call from the system_interface in a separate thread
     static int startSimulation(const std::string &world_xml, const std::string &meshes_path);
     int simulate(const std::string &world_xml, const std::string &meshes_path);
+
+    // GLFW window controls
+    static void staticKeyboardCallback(GLFWwindow *window, int key, int scancode, int act, int mods);
+    void keyboardCallback(GLFWwindow *window, int key, int scancode, int act, int mods);
 
     static std::string getJointNameFromInterfaceName(const std::string& input) {
         size_t pos = input.find('/');

@@ -10,18 +10,19 @@
   <include file="actuators.xml"/>
   <keyframe>
     <!-- Joint Order in Mujoco:
-      
+      FL_HFE FL_KFE FR_HFE FR_KFE HL_HFE HL_KFE HR_HFE HR_KFE
+      (see actuators.xml)
     -->
     <key name="initial_joint_positions" time="0"
-      qpos="0.0 0.0 0.5 0.0 0.0 0.0 0.0
-      0
-      1
-      0
-      1
-      0
-      1
-      0
-      1
+      qpos="0.0 0.0 0.4 0.0 0.0 0.0 0.0
+      0.4
+      -0.7
+      0.4
+      -0.7
+      0.4
+      -0.7
+      0.4
+      -0.7
       " />
   </keyframe>
   <include file="contacts.xml"/>
