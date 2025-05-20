@@ -28,12 +28,12 @@ void MuJoCoSimulator::controlCallback(
             double targetTorque = interface_name_to_target[std::string(joint_name + "/effort")];
 
             // Debug output
-            //std::cout << i << "/" << m->nu << " " << joint_name
-            //    << ": pos[" << currentPos << " -> " << targetPos << "]"
-            //    << " vel[" << currentVel << " -> " << targetVel << "]"
-            //    << " eff[->" << targetTorque << "]"
-            //    << " | Kp=" << k_p << ", Kd=" << k_d << ", Kt=" << k_t
-            //    << std::endl;
+            std::cout << i << "/" << m->nu << " " << joint_name
+                << ": pos[" << currentPos << " -> " << targetPos << "]"
+                << " vel[" << currentVel << " -> " << targetVel << "]"
+                << " eff[->" << targetTorque << "]"
+                << " | Kp=" << k_p << ", Kd=" << k_d << ", Kt=" << k_t
+                << std::endl;
 
             // Since the joints are <motor> actuators in etc/actuators.xml, d->ctrl[i] sets the torque of
             // the i'th joint
