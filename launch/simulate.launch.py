@@ -13,6 +13,7 @@ from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
     world_file_path = LaunchConfiguration("world", default="world_unconstrained.xml")
+    walking_impl_active = LaunchConfiguration("walk", default=True)
 
     mujoco_model_xml_path = PathJoinSubstitution(
         [
@@ -102,11 +103,27 @@ def generate_launch_description():
         )
     )
 
-    return LaunchDescription(
-        [
+    
+    # Walking implementation
+    footstep_planner_node = Node(
+        package="solo_mujoco",
+        executable="footstep_planner_node"
+    )
+
+    if walking_impl_active:
+        launch_desc_items = [
+            ros2_control_node,
+            rsp,
+            joint_state_broadcaster_spawner,
+            delay_position_controller_spawner_after_jsbs,
+            footstep_planner_node
+        ]
+    else:
+        launch_desc_items = [
             ros2_control_node,
             rsp,
             joint_state_broadcaster_spawner,
             delay_position_controller_spawner_after_jsbs
         ]
-    )
+
+    return LaunchDescription(launch_desc_items)
