@@ -106,6 +106,7 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
 
     // Install callbacks for GLFW window
     glfwSetKeyCallback(window, staticKeyboardCallback);
+    glfwSetScrollCallback(window, staticScrollCallback);
 
     // Connect our control callback to MuJoCo
     mjcb_control = MuJoCoSimulator::staticControlCallback;
@@ -219,5 +220,16 @@ void MuJoCoSimulator::keyboardCallback(
       initializeFrameAndTargetBuffers();
       mj_forward(m, d);
     }
+}
+
+void MuJoCoSimulator::staticScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+    getInstance().scrollCallback(window, xoffset, yoffset);
+}
+void MuJoCoSimulator::scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+  (void)window;
+  (void)xoffset;
+
+  // emulate vertical mouse motion = 5% of window height
+  mjv_moveCamera(m, mjMOUSE_ZOOM, 0, -0.05 * yoffset, &scn, &cam);
 }
 }

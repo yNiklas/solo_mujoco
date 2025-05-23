@@ -103,11 +103,34 @@ def generate_launch_description():
         )
     )
 
+    velocity_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "velocity_controller",
+            "--param-file",
+            robot_controllers_config
+        ],
+    )
+    delay_velocity_controller_spawner_after_jsbs = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[velocity_controller_spawner]
+        )
+    )
+
     
     # Walking implementation
     footstep_planner_node = Node(
         package="solo_mujoco",
         executable="footstep_planner_node"
+    )
+
+    # Quad_walker implementation
+    quad_walker = Node(
+        package="solo_mujoco",
+        executable="quad_walker",
+        output="screen"
     )
 
     if walking_impl_active:
@@ -116,14 +139,17 @@ def generate_launch_description():
             rsp,
             joint_state_broadcaster_spawner,
             delay_position_controller_spawner_after_jsbs,
-            footstep_planner_node
+            delay_velocity_controller_spawner_after_jsbs,
+            footstep_planner_node,
+            quad_walker
         ]
     else:
         launch_desc_items = [
             ros2_control_node,
             rsp,
             joint_state_broadcaster_spawner,
-            delay_position_controller_spawner_after_jsbs
+            delay_position_controller_spawner_after_jsbs,
+            delay_velocity_controller_spawner_after_jsbs
         ]
 
     return LaunchDescription(launch_desc_items)

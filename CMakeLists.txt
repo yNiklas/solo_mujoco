@@ -17,6 +17,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
+find_package(control_msgs REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GLFW REQUIRED glfw3)
@@ -115,6 +116,14 @@ target_link_libraries(footstep_planner_node
   ${PROJECT_NAME}__rosidl_typesupport_cpp
 )
 
+# Quad_walker node
+add_executable(quad_walker src/walking/quad_walker.cpp)
+ament_target_dependencies(
+  quad_walker
+  rclcpp
+  control_msgs
+)
+
 #------------------------------------------
 # Install
 #------------------------------------------
@@ -138,6 +147,11 @@ install(TARGETS
 
 install(TARGETS
   footstep_planner_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS quad_walker
   DESTINATION lib/${PROJECT_NAME}
 )
 

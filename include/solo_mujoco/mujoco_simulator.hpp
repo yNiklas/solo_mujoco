@@ -82,6 +82,9 @@ public:
     static void staticKeyboardCallback(GLFWwindow *window, int key, int scancode, int act, int mods);
     void keyboardCallback(GLFWwindow *window, int key, int scancode, int act, int mods);
 
+    static void staticScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+    void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+
     static std::string getJointNameFromInterfaceName(const std::string& input) {
         size_t pos = input.find('/');
         if (pos != std::string::npos) {
