@@ -5,6 +5,7 @@
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "ik_solver.cpp"
 #include "zmp_controller.cpp"
+#include <algorithm>
 
 using namespace std::chrono_literals;
 
@@ -14,7 +15,7 @@ public:
   : Node("quad_controller") {
     pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
       "/position_controller/commands", 10);
-    timer_ = this->create_wall_timer(200ms, std::bind(&QuadControllerNode::control_loop, this));
+    timer_ = this->create_wall_timer(20ms, std::bind(&QuadControllerNode::control_loop, this));
     // Initialisiere Ziele & Solver
     targets_ = {{{{0.2,0.0,-0.1}}, {{0.2,0.0,-0.1}}, {{-0.2,0.0,-0.1}}, {{-0.2,0.0,-0.1}}}};
   }
@@ -29,7 +30,7 @@ private:
 
     std_msgs::msg::Float64MultiArray msg;
     msg.data.clear();
-    // Reihenfolge: hip_front_left, knee_front_left, ... hip_back_right, knee_back_right
+    // Order: hip_front_left, knee_front_left, ... hip_back_right, knee_back_right
     for (const auto & leg : adjusted) {
       msg.data.push_back(leg[0]);
       msg.data.push_back(leg[1]);
@@ -39,28 +40,27 @@ private:
   }
 
   IKSolver::FootTargets compute_foot_targets() {
-    // Implementierung eines diagonalen Trott-Gaits
-    // Phase-Offsets: FL/BR = 0, FR/BL = pi
     double t = this->now().seconds();
-    double freq = 1;          // Schrittfrequenz Hz
-    double step_length = 0.1;   // Schrittweite in Metern
-    double step_height = 0.16;  // Hebehöhe in Metern
+    double freq = 0.5;          // Step frequency in 1/s
+    double step_length = 0.1;   // in m
+    double step_height = 0.07;  // in m
+    double z_ground = -0.26; // in the hip coordinate system. Don't use stretched legs (-0.32m)
 
-    // Zeitparametrisierung für Swing/Stance
-    double phase_FL = std::fmod(2 * M_PI * freq * t + 0.0, 2 * M_PI);
+    // Swing/Stance parameterization
+    double phase_FL = std::fmod(2 * M_PI * freq * t + 0.0, 2 * M_PI) - M_PI/2;
     double phase_BR = phase_FL;
-    double phase_FR = std::fmod(2 * M_PI * freq * t + M_PI, 2 * M_PI);
+    double phase_FR = std::fmod(2 * M_PI * freq * t + M_PI, 2 * M_PI) - M_PI/2;
     double phase_BL = phase_FR;
 
     IKSolver::FootTargets targets;
     auto compute_target = [&](double phase) {
       IKSolver::FootTargets::value_type target;
-      // Vorwärts-Rückwärts Bewegung: sinusförmig
+      // Sinus-wave for forward movement
       target[0] = (step_length/2) * std::sin(phase);
-      // Seitenbewegung vernachlässigt
+      // No side movement possible
       target[1] = 0.0;
-      // Hebung nur in Swing-Phase (phase < pi)
-      target[2] = (phase < M_PI) ? step_height * std::sin(phase) : 0.0;
+      // Clamp to 0 to smooth the non-swing phase
+      target[2] = true ? step_height * std::clamp(std::sin(phase+M_PI/2), 0.0, 1.0) + z_ground : z_ground+step_height/2;
       return target;
     };
 

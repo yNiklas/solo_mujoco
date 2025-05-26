@@ -174,7 +174,6 @@ double MuJoCoSimulator::getJointState(const std::string interface_name) {
 void MuJoCoSimulator::acceptROS2ControlTarget(const std::string interface_name, const double value) {
     if (target_buffer_mutex.try_lock()) {
         interface_name_to_target[interface_name] = value;
-        std::string joint_name = getJointNameFromInterfaceName(interface_name);
         target_buffer_mutex.unlock();
     }
 }

@@ -6,8 +6,10 @@ public:
   using JointAngles = std::array<std::array<double,2>,4>;
 
   JointAngles adjust(const JointAngles &angles) {
+    return angles;
     // Einfache ZMP-Korrektur: Halte Verteilung symmetrisch
     // Berechne mittlere Hüft- und Kniewinkel
+    /*
     double sum_hip = 0.0, sum_knee = 0.0;
     for (const auto &leg : angles) {
       sum_hip += leg[0];
@@ -24,5 +26,6 @@ public:
       adjusted[i][1] += kp * (avg_knee - angles[i][1]);
     }
     return adjusted;
+    */
   }
 };

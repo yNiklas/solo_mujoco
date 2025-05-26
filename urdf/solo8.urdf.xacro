@@ -101,17 +101,17 @@
   <!-- Include joint_interface -->
   <xacro:include filename="$(find solo_mujoco)/urdf/joint_interface.xacro"/>
   <ros2_control name="solo_mujoco" type="system">
-    <xacro:joint_interface name="FL_HFE" p="10" d="0.2" t="1"/>
-    <xacro:joint_interface name="FL_KFE" p="10" d="0.2" t="1"/>
+    <xacro:joint_interface name="FL_HFE" p="10" d="0.1" t="1"/>
+    <xacro:joint_interface name="FL_KFE" p="10" d="0.1" t="1"/>
 
-    <xacro:joint_interface name="FR_HFE" p="10" d="0.2" t="1"/>
-    <xacro:joint_interface name="FR_KFE" p="10" d="0.2" t="1"/>
+    <xacro:joint_interface name="FR_HFE" p="10" d="0.1" t="1"/>
+    <xacro:joint_interface name="FR_KFE" p="10" d="0.1" t="1"/>
 
-    <xacro:joint_interface name="HL_HFE" p="10" d="0.2" t="1"/>
-    <xacro:joint_interface name="HL_KFE" p="10" d="0.2" t="1"/>
+    <xacro:joint_interface name="HL_HFE" p="10" d="0.1" t="1"/>
+    <xacro:joint_interface name="HL_KFE" p="10" d="0.1" t="1"/>
 
-    <xacro:joint_interface name="HR_HFE" p="10" d="0.2" t="1"/>
-    <xacro:joint_interface name="HR_KFE" p="10" d="0.2" t="1"/>
+    <xacro:joint_interface name="HR_HFE" p="10" d="0.1" t="1"/>
+    <xacro:joint_interface name="HR_KFE" p="10" d="0.1" t="1"/>
 
     <xacro:if value="$(arg sim)">
       <hardware>

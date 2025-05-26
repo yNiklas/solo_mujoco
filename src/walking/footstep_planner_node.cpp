@@ -1,4 +1,3 @@
-// Plans when which foot should be placed where (without trajectory).
 #include <chrono>
 #include <memory>
 #include <string>
@@ -14,6 +13,7 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
+// Plans when which foot should be placed where (without trajectory).
 class FootstepPlannerNode : public rclcpp::Node
 {
 public:
@@ -25,7 +25,7 @@ public:
 
     this->declare_parameter<double>("step_duration", 0.6);
     this->declare_parameter<double>("step_length", 0.1);
-    this->declare_parameter<double>("default_z", 0.0);
+    this->declare_parameter<double>("default_z", -0.27); // Ground in the robot base coordinate system with some offset for non-stretched legs
   }
 
 private:
@@ -38,8 +38,8 @@ private:
     double step_length = this->get_parameter("step_length").as_double();
     double default_z = this->get_parameter("default_z").as_double();
 
-    // Leg positions with respect to the base coordinate system.
-    // Given by the URDF files.
+    // Leg positions with respect to the base coordinate system of the robot.
+    // Values given by the URDF files.
     std::map<std::string, double> x_offsets = {
         {"FL",  0.1946}, {"FR", 0.1946},
         {"HL",  -0.1946}, {"HR", -0.1946}

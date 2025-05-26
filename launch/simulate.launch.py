@@ -5,15 +5,16 @@ from launch.substitutions import (
     PathJoinSubstitution,
     LaunchConfiguration,
 )
-from launch.actions import RegisterEventHandler
+from launch.actions import RegisterEventHandler, DeclareLaunchArgument, ExecuteProcess
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.event_handlers import OnProcessExit
+from launch.conditions import IfCondition
 
 def generate_launch_description():
     world_file_path = LaunchConfiguration("world", default="world_unconstrained.xml")
-    walking_impl_active = LaunchConfiguration("walk", default=True)
+    #walking_impl_active = LaunchConfiguration("walk", default="False")
 
     mujoco_model_xml_path = PathJoinSubstitution(
         [
@@ -119,37 +120,37 @@ def generate_launch_description():
         )
     )
 
+    rqt_plot = ExecuteProcess(
+        cmd=['ros2', 'run', 'rqt_plot', 'rqt_plot'],
+        condition=IfCondition(LaunchConfiguration('plot'))
+    )
+
     
     # Walking implementation
     footstep_planner_node = Node(
         package="solo_mujoco",
-        executable="footstep_planner_node"
+        executable="footstep_planner_node",
+        condition=IfCondition(LaunchConfiguration('walk'))
     )
 
     # Quad_walker implementation
     quad_walker = Node(
         package="solo_mujoco",
         executable="quad_walker",
-        output="screen"
+        output="screen",
+        condition=IfCondition(LaunchConfiguration('walk'))
     )
 
-    if walking_impl_active:
-        launch_desc_items = [
-            ros2_control_node,
-            rsp,
-            joint_state_broadcaster_spawner,
-            delay_position_controller_spawner_after_jsbs,
-            delay_velocity_controller_spawner_after_jsbs,
-            footstep_planner_node,
-            quad_walker
-        ]
-    else:
-        launch_desc_items = [
-            ros2_control_node,
-            rsp,
-            joint_state_broadcaster_spawner,
-            delay_position_controller_spawner_after_jsbs,
-            delay_velocity_controller_spawner_after_jsbs
-        ]
+    return LaunchDescription([
+        DeclareLaunchArgument('walk', default_value='false'),
+        DeclareLaunchArgument('plot', default_value='true'),
 
-    return LaunchDescription(launch_desc_items)
+        ros2_control_node,
+        rsp,
+        joint_state_broadcaster_spawner,
+        delay_position_controller_spawner_after_jsbs,
+        delay_velocity_controller_spawner_after_jsbs,
+        footstep_planner_node,
+        quad_walker,
+        rqt_plot
+    ])
