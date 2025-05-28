@@ -254,7 +254,9 @@ void MuJoCoSimulator::mouseMoveCallback(
     GLFWwindow *window,
     double xpos,
     double ypos) {
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS) return;
+    bool leftClicked = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    bool rightClicked = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+    if (!leftClicked && !rightClicked) return;
 
     double dx = xpos - lastx;
     double dy = ypos - lasty;
@@ -264,6 +266,13 @@ void MuJoCoSimulator::mouseMoveCallback(
     int width, height;
     glfwGetWindowSize(window, &width, &height);
 
-    mjv_moveCamera(m, mjMOUSE_ROTATE_V, dx / height, dy / height, &scn, &cam);
+    mjtMouse action;
+    if (leftClicked) {
+        action = mjMOUSE_ROTATE_V;
+    } else {
+        action = mjMOUSE_MOVE_V;
+    }
+
+    mjv_moveCamera(m, action, dx / height, dy / height, &scn, &cam);
 }
 }

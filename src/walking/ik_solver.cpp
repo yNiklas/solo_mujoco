@@ -26,7 +26,8 @@ public:
           throw std::runtime_error("Out of range");
       }
 
-      double kneeAngle = std::acos(cosKnee);
+      // Use -acos(cosKnee) to obtain the knee-up (second) solution
+      double kneeAngle = -std::acos(cosKnee);
 
       double k1 = L + L * std::cos(kneeAngle);
       double k2 = L * std::sin(kneeAngle);

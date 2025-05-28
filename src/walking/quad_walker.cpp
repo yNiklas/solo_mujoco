@@ -41,19 +41,16 @@ private:
 
   IKSolver::FootTargets compute_foot_targets() {
     double t = this->now().seconds();
-    double freq = 0.5;          // Step frequency in 1/s
-    double step_length = 0.1;   // in m
-    double step_height = 0.07;  // in m
-    double z_ground = -0.26; // in the hip coordinate system. Don't use stretched legs (-0.32m)
 
-    // Swing/Stance parameterization
-    double phase_FL = std::fmod(2 * M_PI * freq * t + 0.0, 2 * M_PI);
-    double phase_BR = phase_FL;
-    double phase_FR = std::fmod(2 * M_PI * freq * t + M_PI, 2 * M_PI);
-    double phase_BL = phase_FR;
+    std::array<std::array<double, 4>, 4> trajectoryParameters = {{
+      {{0.5, 0.1, 0.07, -0.24}}, // FL: step frequency in 1/s, step length in m, step height in m, ground in the hip coordinate system in m
+      {{0.5, 0.1, 0.07, -0.24}}, // FR
+      {{0.5, 0.1, 0.07, -0.28}}, // HL
+      {{0.5, 0.1, 0.07, -0.28}}, // HR
+    }};
 
-    IKSolver::FootTargets targets;
-    auto compute_target = [&](double phase) {
+    IKSolver::FootTargets targets; // targets order: FL, FR, HL, HR
+    auto compute_target = [&](double phase, double step_length, double step_height, double z_ground) {
       IKSolver::FootTargets::value_type target;
       // Sinus-wave for forward movement
       target[0] = (step_length/2) * std::sin(phase);
@@ -64,10 +61,18 @@ private:
       return target;
     };
 
-    targets[0] = compute_target(phase_FL); // front_left
-    targets[1] = compute_target(phase_FR); // front_right
-    targets[2] = compute_target(phase_BL); // back_left
-    targets[3] = compute_target(phase_BR); // back_right
+    for (int i=0; i<4; ++i) {
+      double freq = trajectoryParameters[i][0];
+      double stepLength = trajectoryParameters[i][1];
+      double stepHeight = trajectoryParameters[i][2];
+      double z_ground = trajectoryParameters[i][3];
+
+      double offset = 0.0;
+      if (i==1 || i==2) offset = M_PI;
+      double phase = std::fmod(2 * M_PI * freq * t + offset, 2 * M_PI);
+
+      targets[i] = compute_target(phase, stepLength, stepHeight, z_ground);
+    }
 
     return targets;
   }
