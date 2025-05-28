@@ -58,6 +58,10 @@ public:
     std::map<std::string, double> joint_name_to_k_t; // Torque gain per joint
     std::mutex gain_buffer_mutex;
 
+    bool lPressed = false; // somehow this variable is needed (otherwise no mouse click in simulation possible)
+    double lastx = 0;
+    double lasty = 0;
+
     // The static control callback is needed to set the mjcb_control global pointer
     static void staticControlCallback(const mjModel *m, mjData *d);
     void controlCallback(const mjModel *m, mjData *d);
@@ -84,6 +88,12 @@ public:
 
     static void staticScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
     void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+
+    static void staticMouseButtonCallback(GLFWwindow *window, int button, int act, int mods);
+    void mouseButtonCallback(GLFWwindow *window, int button, int act, int mods);
+
+    static void staticMouseMoveCallback(GLFWwindow *window, double xpos, double ypos);
+    void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos);
 
     static std::string getJointNameFromInterfaceName(const std::string& input) {
         size_t pos = input.find('/');

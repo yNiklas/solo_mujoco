@@ -47,9 +47,9 @@ private:
     double z_ground = -0.26; // in the hip coordinate system. Don't use stretched legs (-0.32m)
 
     // Swing/Stance parameterization
-    double phase_FL = std::fmod(2 * M_PI * freq * t + 0.0, 2 * M_PI) - M_PI/2;
+    double phase_FL = std::fmod(2 * M_PI * freq * t + 0.0, 2 * M_PI);
     double phase_BR = phase_FL;
-    double phase_FR = std::fmod(2 * M_PI * freq * t + M_PI, 2 * M_PI) - M_PI/2;
+    double phase_FR = std::fmod(2 * M_PI * freq * t + M_PI, 2 * M_PI);
     double phase_BL = phase_FR;
 
     IKSolver::FootTargets targets;
@@ -60,7 +60,7 @@ private:
       // No side movement possible
       target[1] = 0.0;
       // Clamp to 0 to smooth the non-swing phase
-      target[2] = true ? step_height * std::clamp(std::sin(phase+M_PI/2), 0.0, 1.0) + z_ground : z_ground+step_height/2;
+      target[2] = true ? step_height * std::clamp(std::sin(phase), 0.0, 1.0) + z_ground : z_ground+step_height/2;
       return target;
     };
 

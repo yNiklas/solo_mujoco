@@ -107,6 +107,8 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
     // Install callbacks for GLFW window
     glfwSetKeyCallback(window, staticKeyboardCallback);
     glfwSetScrollCallback(window, staticScrollCallback);
+    glfwSetMouseButtonCallback(window, staticMouseButtonCallback);
+    glfwSetCursorPosCallback(window, staticMouseMoveCallback);
 
     // Connect our control callback to MuJoCo
     mjcb_control = MuJoCoSimulator::staticControlCallback;
@@ -206,7 +208,6 @@ void MuJoCoSimulator::staticKeyboardCallback(
     int mods) {
     getInstance().keyboardCallback(window, key, scancode, act, mods);
 }
-
 void MuJoCoSimulator::keyboardCallback(
     [[maybe_unused]] GLFWwindow *window,
     [[maybe_unused]] int key,
@@ -230,5 +231,39 @@ void MuJoCoSimulator::scrollCallback(GLFWwindow *window, double xoffset, double 
 
   // emulate vertical mouse motion = 5% of window height
   mjv_moveCamera(m, mjMOUSE_ZOOM, 0, -0.05 * yoffset, &scn, &cam);
+}
+
+
+void MuJoCoSimulator::staticMouseButtonCallback(GLFWwindow *window, int button, int act, int mods) {
+    getInstance().mouseButtonCallback(window, button, act, mods);
+}
+void MuJoCoSimulator::mouseButtonCallback(
+    GLFWwindow *window,
+    [[maybe_unused]] int button,
+    [[maybe_unused]] int act,
+    [[maybe_unused]] int mods) {
+    // Save the position when a mouse button was clicked.
+    // This is important (as a reference point) for the mouseMoveCallback.
+    glfwGetCursorPos(window, &lastx, &lasty);
+}
+
+void MuJoCoSimulator::staticMouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
+    getInstance().mouseMoveCallback(window, xpos, ypos);
+}
+void MuJoCoSimulator::mouseMoveCallback(
+    GLFWwindow *window,
+    double xpos,
+    double ypos) {
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS) return;
+
+    double dx = xpos - lastx;
+    double dy = ypos - lasty;
+    lastx = xpos;
+    lasty = ypos;
+    
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+
+    mjv_moveCamera(m, mjMOUSE_ROTATE_V, dx / height, dy / height, &scn, &cam);
 }
 }
