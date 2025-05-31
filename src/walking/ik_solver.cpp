@@ -23,7 +23,8 @@ public:
       double distanceSquared = x * x + z * z;
       double cosKnee = (distanceSquared - 2 * L * L) / (2 * L * L);
       if (cosKnee < -1.0 || cosKnee > 1.0) {
-          throw std::runtime_error("Out of range");
+        std::cout << "(" << x << "," << z << ")" << std::endl;
+        throw std::runtime_error("Out of range");
       }
 
       // Use -acos(cosKnee) to obtain the knee-up (second) solution

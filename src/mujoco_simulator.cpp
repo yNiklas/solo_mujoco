@@ -28,6 +28,16 @@ void MuJoCoSimulator::controlCallback(
     [[maybe_unused]] const mjModel *m,
     [[maybe_unused]] mjData *d) {
     if (target_buffer_mutex.try_lock()) {
+        // Calculate gravity compensation with a separate data object
+        mjData* data_copy = mj_makeData(m);
+        mj_copyData(data_copy, m, d);
+        mju_zero(data_copy->qvel, m->nv); // only gravity
+        mju_zero(data_copy->qacc, m->nv); // only gravity
+        mj_inverse(m, data_copy);
+        mjtNum gravity_compensation[m->nv];
+        mju_copy(gravity_compensation, data_copy->qfrc_inverse, m->nv);
+        mj_deleteData(data_copy);
+
         for (int i=0; i < m->nu; ++i) {
             std::string joint_name = m->names + m->name_actuatoradr[i];
 
@@ -38,7 +48,8 @@ void MuJoCoSimulator::controlCallback(
             double currentVel = d->qvel[joint_name_to_qvel_idx[joint_name]];
             double targetPos = interface_name_to_target[std::string(joint_name + "/position")];
             double targetVel = interface_name_to_target[std::string(joint_name + "/velocity")];
-            double targetTorque = interface_name_to_target[std::string(joint_name + "/effort")];
+            //double targetTorque = interface_name_to_target[std::string(joint_name + "/effort")];
+            double targetTorque = gravity_compensation[joint_name_to_qvel_idx[joint_name]];
 
             // Debug output
             //std::cout << i << "/" << m->nu << " " << joint_name
@@ -53,7 +64,7 @@ void MuJoCoSimulator::controlCallback(
             d->ctrl[i] =
                 k_p * (targetPos - currentPos) +
                 k_d * (targetVel - currentVel) +
-                k_t * targetTorque;
+                k_t * targetTorque; // feed-forward torque control
         }
         target_buffer_mutex.unlock();
     }
