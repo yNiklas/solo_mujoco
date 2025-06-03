@@ -65,7 +65,7 @@ public:
         for (int i=0; i<4; ++i) {
             if (stance[i]) {
                 // Stance -> Linear movement
-                targets[i] = {{step_length/2 - step_length*phase, 0, z_ground}};
+                targets[i] = {{step_length/4 - step_length*phase/2, 0, z_ground}};
             } else {
                 // Swing
                 double x = -step_length / 2 + step_length * phase;

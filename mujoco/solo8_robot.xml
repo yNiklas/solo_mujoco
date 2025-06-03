@@ -1,6 +1,9 @@
 <mujoco model="solo8">
   <body name="robot" pos="0 0 0">
     <geom name="body_visual" type="mesh" mesh="solo_body"/>
+    <body name="imu_link" pos="-0.01018 -0.03835 -0.00785">
+      <site name="imu_site" type="box" size="0.038 0.024 0.0107"/>
+    </body>
 
     <!-- Front left leg -->
     <body name="FL_UPPER_LEG" pos="0.1946 0.1015 0">

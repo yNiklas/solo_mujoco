@@ -26,11 +26,11 @@ find_package(GLEW REQUIRED)
 #------------------------------------------
 # Message Generation
 #------------------------------------------
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Footstep.msg"
-  "msg/FootstepArray.msg"
-  DEPENDENCIES geometry_msgs builtin_interfaces
-)
+#rosidl_generate_interfaces(${PROJECT_NAME}
+#  "msg/Footstep.msg"
+#  "msg/FootstepArray.msg"
+#  DEPENDENCIES geometry_msgs builtin_interfaces
+#)
 
 #------------------------------------------
 # MuJoCo
@@ -62,19 +62,19 @@ endif()
 #------------------------------------------
 
 # System Interface Library
-add_library(${PROJECT_NAME}_core SHARED
+add_library(${PROJECT_NAME} SHARED
   src/system_interface.cpp
 )
-target_include_directories(${PROJECT_NAME}_core PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(${PROJECT_NAME}_core
+ament_target_dependencies(${PROJECT_NAME}
   hardware_interface
   pluginlib
   rclcpp
 )
-target_link_libraries(${PROJECT_NAME}_core
+target_link_libraries(${PROJECT_NAME}
   mujoco_simulator
 )
 
@@ -100,21 +100,21 @@ target_link_libraries(mujoco_simulator PUBLIC
 )
 
 # Walking Planner Node
-add_executable(footstep_planner_node
-  src/walking/footstep_planner_node.cpp
-)
-ament_target_dependencies(footstep_planner_node
-  rclcpp
-  geometry_msgs
-  builtin_interfaces
-  rosidl_default_runtime
-)
-target_include_directories(footstep_planner_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp>
-)
-target_link_libraries(footstep_planner_node
-  ${PROJECT_NAME}__rosidl_typesupport_cpp
-)
+#add_executable(footstep_planner_node
+#  src/walking/footstep_planner_node.cpp
+#)
+#ament_target_dependencies(footstep_planner_node
+#  rclcpp
+#  geometry_msgs
+#  builtin_interfaces
+#  rosidl_default_runtime
+#)
+#target_include_directories(footstep_planner_node PUBLIC
+#  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/#rosidl_generator_cpp>
+#)
+#target_link_libraries(footstep_planner_node
+#  ${PROJECT_NAME}__rosidl_typesupport_cpp
+#)
 
 # Quad_walker node
 add_executable(quad_walker src/walking/quad_walker.cpp)
@@ -136,7 +136,7 @@ install(DIRECTORY config launch meshes mujoco urdf
 )
 
 install(TARGETS
-  ${PROJECT_NAME}_core
+  ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -145,16 +145,16 @@ install(TARGETS
   DESTINATION lib
 )
 
-install(TARGETS
-  footstep_planner_node
-  DESTINATION lib/${PROJECT_NAME}
-)
+#install(TARGETS
+#  footstep_planner_node
+#  DESTINATION lib/${PROJECT_NAME}
+#)
 
 install(
   TARGETS quad_walker
   DESTINATION lib/${PROJECT_NAME}
 )
 
-ament_export_dependencies(rosidl_default_runtime)
+#ament_export_dependencies(rosidl_default_runtime)
 
 ament_package()

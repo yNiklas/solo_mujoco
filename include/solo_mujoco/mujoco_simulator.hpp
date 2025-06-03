@@ -7,6 +7,11 @@
 #include <map>
 #include <string>
 #include <mutex>
+#include <random>
+#include <vector>
+
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 
 namespace solo_mujoco {
 class MuJoCoSimulator {
@@ -18,6 +23,10 @@ private:
 
     // Buffers the joint states (d->qpos & d->qvel) into the interface_name_to_state map
     void bufferStates();
+
+    // Publishes data from the IMU to the /imu topic
+    void publishImuData();
+    std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Imu>> imu_publisher;
 
 public:
     MuJoCoSimulator(const MuJoCoSimulator &) = delete;
@@ -42,6 +51,16 @@ public:
     std::map<std::string, int> joint_name_to_qpos_idx;
     std::map<std::string, int> joint_name_to_qvel_idx;
 
+    // Maps the sensor name to the index for d->sensordata
+    std::map<std::string, int> sensor_name_to_sensordata_idx;
+    // Maps the sensor name to the noise specified in the XML file
+    std::map<std::string, mjtNum> sensor_name_to_noise_stddev;
+    // Maps the sensor name to the number of values emitted by them
+    std::map<std::string, int> sensor_name_to_dim;
+    // Buffer for sensor data to be exchanged with system_interface.
+    // To be protected by state_buffer_mutex
+    std::map<std::string, std::vector<mjtNum>> sensor_name_to_sensordata;
+
     // Buffers for the joint states, that will be given to ROS2-control
     // in the getJointState method. The method is called from another thread
     // so that we cannot directly access d->qpos and d->qvel.
@@ -58,7 +77,6 @@ public:
     std::map<std::string, double> joint_name_to_k_t; // Torque gain per joint
     std::mutex gain_buffer_mutex;
 
-    bool lPressed = false; // somehow this variable is needed (otherwise no mouse click in simulation possible)
     double lastx = 0;
     double lasty = 0;
 
@@ -68,6 +86,11 @@ public:
 
     // Provides the joint states for ROS2-control system_interface plugin. Called from another thread!
     double getJointState(const std::string interface_name);
+
+    // Provides the buffered sensor readings for ROS2-control system_interface plugin. Called from another thread!
+    // The resulting vector contains all sensor outputs, as dimensioned in m->sensor_dim.
+    // The values include noise.
+    std::vector<mjtNum> getSensorValue(const std::string name);
 
     // Incoming ROS2-control targets (via system_interface), e.g., issued by external nodes via /position_controller/commands... topics.
     // The interface_name follows the form <joint_name>/<interface>, e.g., FL_HFE/position

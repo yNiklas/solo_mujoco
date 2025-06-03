@@ -17,16 +17,14 @@ public:
     pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
       "/position_controller/commands", 10);
     timer_ = this->create_wall_timer(20ms, std::bind(&QuadControllerNode::control_loop, this));
-    this->gait_planner_.initializeTrot(0.5, 0.1, 0.07, -0.28);
-    // Initialisiere Ziele & Solver
-    targets_ = {{{{0.2,0.0,-0.1}}, {{0.2,0.0,-0.1}}, {{-0.2,0.0,-0.1}}, {{-0.2,0.0,-0.1}}}};
+    this->gait_planner_.initializeTrot(1, 0.1, 0.07, -0.28);
   }
 
 private:
   void control_loop() {
     using FootTargets = IKSolver::FootTargets;
     using JointAngles = IKSolver::JointAngles;
-    FootTargets gait_targets = gait_planner_.computeTrotFootTargets(this->now().seconds());//compute_foot_targets();
+    FootTargets gait_targets = compute_foot_targets();
     JointAngles angles = ik_solver_.solve(gait_targets);
     JointAngles adjusted = zmp_ctrl_.adjust(angles);
 
@@ -84,7 +82,6 @@ private:
   GaitPlanner gait_planner_;
   IKSolver ik_solver_;
   ZMPController zmp_ctrl_;
-  IKSolver::FootTargets targets_;
 };
 
 int main(int argc, char ** argv) {

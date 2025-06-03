@@ -124,12 +124,21 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
     // Connect our control callback to MuJoCo
     mjcb_control = MuJoCoSimulator::staticControlCallback;
 
-    for (int i=0; i<m->njnt; i++) {
+    // Initialize joint name mappings
+    for (int i=0; i < m->njnt; ++i) {
         std::string name = m->names + m->name_jntadr[i];
         int qpos_idx = m->jnt_qposadr[i];
         int qvel_idx = m->jnt_dofadr[i];
         joint_name_to_qpos_idx[name] = qpos_idx;
         joint_name_to_qvel_idx[name] = qvel_idx;
+    }
+
+    // Initialize IMU mapping
+    for (int i=0; i < m->nsensor; ++i) {
+        std::string name = m->names + m->name_sensoradr[i];
+        sensor_name_to_sensordata_idx[name] = m->sensor_adr[i];
+        sensor_name_to_noise_stddev[name] = m->sensor_noise[i];
+        sensor_name_to_dim[name] = m->sensor_dim[i];
     }
 
     // Simulation loop
@@ -168,20 +177,43 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
 
 void MuJoCoSimulator::bufferStates() {
     if (state_buffer_mutex.try_lock()) {
+        // Buffer joint positions
         for (const auto &[joint_name, qpos_idx] : joint_name_to_qpos_idx) {
             std::string interface_name(joint_name + "/position");
             interface_name_to_state[interface_name] = d->qpos[qpos_idx];
         }
+        // Buffer joint velocities
         for (const auto &[joint_name, qvel_idx] : joint_name_to_qvel_idx) {
             std::string interface_name(joint_name + "/velocity");
             interface_name_to_state[interface_name] = d->qvel[qvel_idx];
+        }
+        
+        // Buffer sensor values
+        for (const auto &[sensor_name, sensordata_idx] : sensor_name_to_sensordata_idx) {
+            sensor_name_to_sensordata[sensor_name].clear();
+            for (int i=0; i < sensor_name_to_dim[sensor_name]; ++i) {
+                mjtNum noise = sensor_name_to_noise_stddev[sensor_name];
+                sensor_name_to_sensordata[sensor_name].push_back(d->sensordata[sensordata_idx+i] + noise);
+            }
         }
         state_buffer_mutex.unlock();
     }
 }
 
+void MuJoCoSimulator::publishImuData() {
+    double mean = 0.0;
+    double stddev = 1.0;
+    std::random_device rd;
+    std::mt19937 gen(rd()); 
+    std::normal_distribution<> dist(mean, stddev);
+}
+
 double MuJoCoSimulator::getJointState(const std::string interface_name) {
     return interface_name_to_state[interface_name];
+}
+
+std::vector<mjtNum> MuJoCoSimulator::getSensorValue(const std::string name) {
+    return sensor_name_to_sensordata[name];
 }
 
 void MuJoCoSimulator::acceptROS2ControlTarget(const std::string interface_name, const double value) {

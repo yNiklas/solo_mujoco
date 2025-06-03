@@ -1,0 +1,7 @@
+<include>
+  <sensor>
+    <accelerometer name="accelerometer" site="imu_site" noise="0.01"/>
+    <gyro name="gyroscope" site="imu_site" noise="0.01"/>
+    <framequat name="orientation_sensor" objtype="site" objname="imu_site" noise="0.02"/>
+  </sensor>
+</include>
