@@ -10,9 +10,6 @@
 #include <random>
 #include <vector>
 
-#include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/imu.hpp>
-
 namespace solo_mujoco {
 class MuJoCoSimulator {
 private:
@@ -23,10 +20,6 @@ private:
 
     // Buffers the joint states (d->qpos & d->qvel) into the interface_name_to_state map
     void bufferStates();
-
-    // Publishes data from the IMU to the /imu topic
-    void publishImuData();
-    std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Imu>> imu_publisher;
 
 public:
     MuJoCoSimulator(const MuJoCoSimulator &) = delete;

@@ -139,6 +139,9 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
         sensor_name_to_sensordata_idx[name] = m->sensor_adr[i];
         sensor_name_to_noise_stddev[name] = m->sensor_noise[i];
         sensor_name_to_dim[name] = m->sensor_dim[i];
+        for (int j=0; j < m->sensor_dim[i]; ++j) {
+            sensor_name_to_sensordata[name].push_back(0);
+        }
     }
 
     // Simulation loop
@@ -176,6 +179,10 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
 }
 
 void MuJoCoSimulator::bufferStates() {
+    // Noise generator
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
     if (state_buffer_mutex.try_lock()) {
         // Buffer joint positions
         for (const auto &[joint_name, qpos_idx] : joint_name_to_qpos_idx) {
@@ -189,10 +196,15 @@ void MuJoCoSimulator::bufferStates() {
         }
         
         // Buffer sensor values
+        // TODO: remove, no buffer needed
         for (const auto &[sensor_name, sensordata_idx] : sensor_name_to_sensordata_idx) {
             sensor_name_to_sensordata[sensor_name].clear();
+            
+            // Generate noise
+            mjtNum stddev = sensor_name_to_noise_stddev[sensor_name];
+            std::normal_distribution<> dist(0.0, stddev);
+            mjtNum noise = dist(gen);
             for (int i=0; i < sensor_name_to_dim[sensor_name]; ++i) {
-                mjtNum noise = sensor_name_to_noise_stddev[sensor_name];
                 sensor_name_to_sensordata[sensor_name].push_back(d->sensordata[sensordata_idx+i] + noise);
             }
         }
@@ -200,20 +212,18 @@ void MuJoCoSimulator::bufferStates() {
     }
 }
 
-void MuJoCoSimulator::publishImuData() {
-    double mean = 0.0;
-    double stddev = 1.0;
-    std::random_device rd;
-    std::mt19937 gen(rd()); 
-    std::normal_distribution<> dist(mean, stddev);
-}
-
 double MuJoCoSimulator::getJointState(const std::string interface_name) {
     return interface_name_to_state[interface_name];
 }
 
 std::vector<mjtNum> MuJoCoSimulator::getSensorValue(const std::string name) {
-    return sensor_name_to_sensordata[name];
+    std::vector<mjtNum> vec;
+    if (sensor_name_to_sensordata_idx.count(name) == 0) return vec;
+    int offset = sensor_name_to_sensordata_idx[name];
+    for (int i=0; i < sensor_name_to_dim[name]; ++i) {
+        vec.push_back(d->sensordata[offset+i]);
+    }
+    return vec;
 }
 
 void MuJoCoSimulator::acceptROS2ControlTarget(const std::string interface_name, const double value) {

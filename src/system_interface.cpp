@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <vector>
+#include <iostream>
 
 #include "solo_mujoco/mujoco_simulator.hpp"
 
@@ -87,6 +88,15 @@ hardware_interface::CallbackReturn Simulator::on_init(const hardware_interface::
         MuJoCoSimulator::getInstance().specifyKtGain(joint.name, t);
     }
 
+    // Initialize IMU publisher
+    node = rclcpp::Node::make_shared(NODE_NAME);
+    std::chrono::milliseconds publishing_speed(1000 / 60);
+    imu_publisher = node->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
+    imu_publish_timer = node->create_wall_timer(publishing_speed, std::bind(&Simulator::publishImuData, this));
+    imu_publisher_thread = std::thread([this](){
+        rclcpp::spin(node);
+    });
+
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -105,13 +115,30 @@ hardware_interface::return_type Simulator::write(
     [[maybe_unused]] const rclcpp::Duration &duration) {
     // The interface_name follows the form <joint_name>/<interface>, e.g., FL_HFE/position
     for (const auto &[interface_name, joint_desc] : joint_command_interfaces_) {
-        // TODO: send command value to simulator
         double cmd = get_command(interface_name);
         if (!std::isnan(cmd)) {
             MuJoCoSimulator::getInstance().acceptROS2ControlTarget(interface_name, cmd);
         }
     }
     return hardware_interface::return_type::OK;
+}
+
+void Simulator::publishImuData() {
+    auto now = node->get_clock()->now();
+    sensor_msgs::msg::Imu msg;
+    msg.header.frame_id = "imu_link";
+    msg.header.stamp = node->get_clock()->now();
+
+    std::vector<double> accelerometer = MuJoCoSimulator::getInstance().getSensorValue("accelerometer");
+    std::vector<double> gyroscope = MuJoCoSimulator::getInstance().getSensorValue("gyroscope");
+    std::vector<double> orientation = MuJoCoSimulator::getInstance().getSensorValue("orientation_sensor");
+    if (accelerometer.size() == 3) {
+        msg.linear_acceleration.x = accelerometer[0];
+        msg.linear_acceleration.y = accelerometer[1];
+        msg.linear_acceleration.z = accelerometer[2];
+    }
+
+    imu_publisher->publish(msg);
 }
 }
 
