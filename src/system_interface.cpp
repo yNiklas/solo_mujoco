@@ -138,6 +138,8 @@ void Simulator::publishImuData() {
         msg.linear_acceleration.z = accelerometer[2];
     }
 
+    // todo: other
+
     imu_publisher->publish(msg);
 }
 }
