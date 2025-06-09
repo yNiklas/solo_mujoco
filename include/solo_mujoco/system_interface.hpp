@@ -10,6 +10,7 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/imu.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 
 namespace solo_mujoco {
 class Simulator : public hardware_interface::SystemInterface {
@@ -31,12 +32,17 @@ private:
     std::string m_mujoco_model_xml_path;
     std::string m_meshes_path;
 
-    // Publisher of the sensor readings from the simulator for the /imu topic
+    // Publisher of the sensor readings from the simulator
     std::shared_ptr<rclcpp::Node> node;
+    std::thread publisher_thread;
+
     std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Imu>> imu_publisher;
-    std::thread imu_publisher_thread;
     rclcpp::TimerBase::SharedPtr imu_publish_timer;
     void publishImuData();
+
+    std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>> foot_contact_publisher;
+    rclcpp::TimerBase::SharedPtr foot_contact_publish_timer;
+    void publishFootContactData();
 };
 }
 #endif

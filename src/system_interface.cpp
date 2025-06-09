@@ -88,12 +88,17 @@ hardware_interface::CallbackReturn Simulator::on_init(const hardware_interface::
         MuJoCoSimulator::getInstance().specifyKtGain(joint.name, t);
     }
 
-    // Initialize IMU publisher
+    // Initialize Node for IMU and foot contact publisher
     node = rclcpp::Node::make_shared(NODE_NAME);
     std::chrono::milliseconds publishing_speed(1000 / 60);
+
     imu_publisher = node->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
     imu_publish_timer = node->create_wall_timer(publishing_speed, std::bind(&Simulator::publishImuData, this));
-    imu_publisher_thread = std::thread([this](){
+
+    foot_contact_publisher = node->create_publisher<std_msgs::msg::Float64MultiArray>("/foot_contacts", 10);
+    foot_contact_publish_timer = node->create_wall_timer(publishing_speed, std::bind(&Simulator::publishFootContactData, this));
+
+    publisher_thread = std::thread([this](){
         rclcpp::spin(node);
     });
 
@@ -151,6 +156,31 @@ void Simulator::publishImuData() {
     }
 
     imu_publisher->publish(msg);
+}
+
+void Simulator::publishFootContactData() {
+    std::vector<double> fl_foot_contact = MuJoCoSimulator::getInstance().getSensorValue("FL_contact_sensor");
+    std::vector<double> fr_foot_contact = MuJoCoSimulator::getInstance().getSensorValue("FR_contact_sensor");
+    std::vector<double> hl_foot_contact = MuJoCoSimulator::getInstance().getSensorValue("HL_contact_sensor");
+    std::vector<double> hr_foot_contact = MuJoCoSimulator::getInstance().getSensorValue("HR_contact_sensor");
+
+    auto msg = std_msgs::msg::Float64MultiArray();
+    msg.data.resize(4);
+
+    if (fl_foot_contact.size() == 1) {
+        msg.data[0] = fl_foot_contact[0];
+    }
+    if (fr_foot_contact.size() == 1) {
+        msg.data[1] = fr_foot_contact[0];
+    }
+    if (hl_foot_contact.size() == 1) {
+        msg.data[2] = hl_foot_contact[0];
+    }
+    if (hr_foot_contact.size() == 1) {
+        msg.data[3] = hr_foot_contact[0];
+    }
+
+    foot_contact_publisher->publish(msg);
 }
 }
 

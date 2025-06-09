@@ -202,6 +202,7 @@ double MuJoCoSimulator::getJointState(const std::string interface_name) {
 std::vector<mjtNum> MuJoCoSimulator::getSensorValue(const std::string name) {
     std::vector<mjtNum> vec;
     if (sensor_name_to_sensordata_idx.count(name) == 0) return vec;
+
     int offset = sensor_name_to_sensordata_idx[name];
     for (int i=0; i < sensor_name_to_dim[name]; ++i) {
         vec.push_back(d->sensordata[offset+i]);

@@ -19,7 +19,7 @@
         <geom name="FL_LOWER_LEG_VISUAL" type="mesh" mesh="solo_lower_leg_left_side"/>
 
         <!-- Foot contact sensor -->
-        <site name="FL_contact_site" pos="0 0 -0.16" type="sphere" size="0.01"/>
+        <site name="FL_contact_site" pos="0 0.0075 -0.16" type="sphere" size="0.013"/>
       </body>
     </body>
 
@@ -37,7 +37,7 @@
         <geom name="FR_LOWER_LEG_VISUAL" type="mesh" mesh="solo_lower_leg_right_side"/>
 
         <!-- Foot contact sensor -->
-        <site name="FR_contact_site" pos="0 0 -0.16" type="sphere" size="0.01"/>
+        <site name="FR_contact_site" pos="0 -0.0075 -0.16" type="sphere" size="0.013"/>
       </body>
     </body>
 
@@ -55,7 +55,7 @@
         <geom name="HL_LOWER_LEG_VISUAL" type="mesh" mesh="solo_lower_leg_left_side"/>
 
         <!-- Foot contact sensor -->
-        <site name="HL_contact_site" pos="0 0 -0.16" type="sphere" size="0.01"/>
+        <site name="HL_contact_site" pos="0 0.0075 -0.16" type="sphere" size="0.013"/>
       </body>
     </body>
 
@@ -73,7 +73,7 @@
         <geom name="HR_LOWER_LEG_VISUAL" type="mesh" mesh="solo_lower_leg_right_side"/>
 
         <!-- Foot contact sensor -->
-        <site name="HR_contact_site" pos="0 0 -0.16" type="sphere" size="0.01"/>
+        <site name="HR_contact_site" pos="0 -0.0075 -0.16" type="sphere" size="0.013"/>
       </body>
     </body>
   </body>
