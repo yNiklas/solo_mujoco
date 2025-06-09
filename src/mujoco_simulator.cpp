@@ -34,7 +34,7 @@ void MuJoCoSimulator::controlCallback(
         mju_zero(data_copy->qvel, m->nv); // only gravity
         mju_zero(data_copy->qacc, m->nv); // only gravity
         mj_inverse(m, data_copy);
-        mjtNum gravity_compensation[m->nv];
+        mjtNum* gravity_compensation = new mjtNum[m->nv];
         mju_copy(gravity_compensation, data_copy->qfrc_inverse, m->nv);
         mj_deleteData(data_copy);
 
@@ -139,9 +139,6 @@ int MuJoCoSimulator::simulate(const std::string &world_xml, const std::string &m
         sensor_name_to_sensordata_idx[name] = m->sensor_adr[i];
         sensor_name_to_noise_stddev[name] = m->sensor_noise[i];
         sensor_name_to_dim[name] = m->sensor_dim[i];
-        for (int j=0; j < m->sensor_dim[i]; ++j) {
-            sensor_name_to_sensordata[name].push_back(0);
-        }
     }
 
     // Simulation loop
@@ -193,20 +190,6 @@ void MuJoCoSimulator::bufferStates() {
         for (const auto &[joint_name, qvel_idx] : joint_name_to_qvel_idx) {
             std::string interface_name(joint_name + "/velocity");
             interface_name_to_state[interface_name] = d->qvel[qvel_idx];
-        }
-        
-        // Buffer sensor values
-        // TODO: remove, no buffer needed
-        for (const auto &[sensor_name, sensordata_idx] : sensor_name_to_sensordata_idx) {
-            sensor_name_to_sensordata[sensor_name].clear();
-            
-            // Generate noise
-            mjtNum stddev = sensor_name_to_noise_stddev[sensor_name];
-            std::normal_distribution<> dist(0.0, stddev);
-            mjtNum noise = dist(gen);
-            for (int i=0; i < sensor_name_to_dim[sensor_name]; ++i) {
-                sensor_name_to_sensordata[sensor_name].push_back(d->sensordata[sensordata_idx+i] + noise);
-            }
         }
         state_buffer_mutex.unlock();
     }

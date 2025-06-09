@@ -137,8 +137,18 @@ void Simulator::publishImuData() {
         msg.linear_acceleration.y = accelerometer[1];
         msg.linear_acceleration.z = accelerometer[2];
     }
+    if (gyroscope.size() == 3) {
+        msg.angular_velocity.x = gyroscope[0];
+        msg.angular_velocity.y = gyroscope[1];
+        msg.angular_velocity.z = gyroscope[2];
+    }
 
-    // todo: other
+    if (orientation.size() == 4) {
+        msg.orientation.x = orientation[1];
+        msg.orientation.y = orientation[2];
+        msg.orientation.z = orientation[3];
+        msg.orientation.w = orientation[0];
+    }
 
     imu_publisher->publish(msg);
 }

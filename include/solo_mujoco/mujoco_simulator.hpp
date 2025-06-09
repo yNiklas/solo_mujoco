@@ -50,9 +50,6 @@ public:
     std::map<std::string, mjtNum> sensor_name_to_noise_stddev;
     // Maps the sensor name to the number of values emitted by them
     std::map<std::string, int> sensor_name_to_dim;
-    // Buffer for sensor data to be exchanged with system_interface.
-    // To be protected by state_buffer_mutex
-    std::map<std::string, std::vector<mjtNum>> sensor_name_to_sensordata;
 
     // Buffers for the joint states, that will be given to ROS2-control
     // in the getJointState method. The method is called from another thread
