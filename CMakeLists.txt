@@ -118,13 +118,6 @@ target_link_libraries(mujoco_simulator PUBLIC
 #  ${PROJECT_NAME}__rosidl_typesupport_cpp
 #)
 
-# Quad_walker node
-add_executable(quad_walker src/walking/quad_walker.cpp)
-ament_target_dependencies(
-  quad_walker
-  rclcpp
-  control_msgs
-)
 # Task controller node
 add_executable(task_controller src/tasks/task_controller.cpp)
 ament_target_dependencies(
@@ -159,10 +152,6 @@ install(TARGETS
 #  DESTINATION lib/${PROJECT_NAME}
 #)
 
-install(
-  TARGETS quad_walker
-  DESTINATION lib/${PROJECT_NAME}
-)
 install(
   TARGETS task_controller
   DESTINATION lib/${PROJECT_NAME}
