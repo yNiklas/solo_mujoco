@@ -125,20 +125,19 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('plot'))
     )
 
-    
-    # Walking implementation
-    footstep_planner_node = Node(
-        package="solo_mujoco",
-        executable="footstep_planner_node",
-        condition=IfCondition(LaunchConfiguration('walk'))
-    )
-
     # Quad_walker implementation
     quad_walker = Node(
         package="solo_mujoco",
         executable="quad_walker",
         output="screen",
         condition=IfCondition(LaunchConfiguration('walk'))
+    )
+
+    # TaskController implementation
+    task_controller = Node(
+        package="solo_mujoco",
+        executable="task_controller",
+        output="screen"
     )
 
     return LaunchDescription([
@@ -150,7 +149,7 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         delay_position_controller_spawner_after_jsbs,
         delay_velocity_controller_spawner_after_jsbs,
-        footstep_planner_node,
         quad_walker,
+        task_controller,
         rqt_plot
     ])

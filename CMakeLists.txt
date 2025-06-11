@@ -64,6 +64,8 @@ endif()
 # System Interface Library
 add_library(${PROJECT_NAME} SHARED
   src/system_interface.cpp
+  src/tasks/walking/trot_walker.cpp
+  src/tasks/walking/ik_solver.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -123,6 +125,13 @@ ament_target_dependencies(
   rclcpp
   control_msgs
 )
+# Task controller node
+add_executable(task_controller src/tasks/task_controller.cpp)
+ament_target_dependencies(
+  task_controller
+  rclcpp
+)
+target_link_libraries(task_controller ${PROJECT_NAME})
 
 #------------------------------------------
 # Install
@@ -152,6 +161,10 @@ install(TARGETS
 
 install(
   TARGETS quad_walker
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(
+  TARGETS task_controller
   DESTINATION lib/${PROJECT_NAME}
 )
 
