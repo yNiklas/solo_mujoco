@@ -13,18 +13,31 @@ private:
     std::unique_ptr<Task> tasks[2];
     long unsigned int active_task_idx = 0;
     bool firstExecution = true;
+    
+    int next_task_idx = -1; // -1 = no task switch scheduled
+    bool task_switch_initiated = false;
 
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr trot_service_;
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr sit_service_;
 
     void initializeServices() {
+        trot_service_ = this->create_service<std_srvs::srv::Trigger>(
+            "/tasks/trigger/TROT", 
+            std::bind(&TaskControllerNode::handle_trot_trigger, this, std::placeholders::_1, std::placeholders::_2)
+        );
 
+        sit_service_ = this->create_service<std_srvs::srv::Trigger>(
+            "/tasks/trigger/SIT", 
+            std::bind(&TaskControllerNode::handle_sit_trigger, this, std::placeholders::_1, std::placeholders::_2)
+        );
     }
 
     void handle_trot_trigger(
         [[maybe_unused]] const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
         std::shared_ptr<std_srvs::srv::Trigger::Response> response)
     {
+        next_task_idx = 0;
+
         response->success = true;
         response->message = "TROT command triggered!";
         
@@ -35,6 +48,8 @@ private:
         [[maybe_unused]] const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
         std::shared_ptr<std_srvs::srv::Trigger::Response> response)
     {
+        next_task_idx = 1;
+
         response->success = true;
         response->message = "SIT command triggered!";
         
@@ -42,11 +57,27 @@ private:
     }
 
     void controlLoop() {
-        if (firstExecution) {
-            tasks[active_task_idx]->start(this->now().seconds());
-            firstExecution = false;
+        auto timestamp = this->now().seconds();
+
+        // Detect desired task switch
+        if (next_task_idx != -1) {
+            if (!task_switch_initiated) {
+                tasks[active_task_idx]->startReturnToStableStand(timestamp, 2);
+                task_switch_initiated = true;
+            }
+            if (tasks[active_task_idx]->returnedToStableStand(timestamp)) {
+                firstExecution = true;
+                active_task_idx = next_task_idx;
+                next_task_idx = -1;
+                task_switch_initiated = false;
+            }
+        } else {
+            if (firstExecution) {
+                tasks[active_task_idx]->start(timestamp);
+                firstExecution = false;
+            }
+            tasks[active_task_idx]->execute(timestamp);
         }
-        tasks[active_task_idx]->execute(this->now().seconds());
     }
 
 public:
@@ -56,6 +87,8 @@ public:
         rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_position_publisher = this->create_publisher<std_msgs::msg::Float64MultiArray>("/position_controller/commands", 10);
         tasks[0] = std::make_unique<solo_mujoco::TrotWalker>(joint_position_publisher);
         tasks[1] = std::make_unique<solo_mujoco::Sit>(joint_position_publisher);
+
+        initializeServices();
     }
 };
 
