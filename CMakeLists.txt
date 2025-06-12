@@ -14,6 +14,7 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
@@ -124,6 +125,7 @@ add_executable(task_controller src/tasks/task_controller.cpp)
 ament_target_dependencies(
   task_controller
   rclcpp
+  std_srvs
 )
 target_link_libraries(task_controller ${PROJECT_NAME})
 

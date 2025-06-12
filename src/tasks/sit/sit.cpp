@@ -5,6 +5,7 @@ namespace solo_mujoco {
 Sit::Sit(std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>> jointPositionPublisher) : jointPositionPublisher_(jointPositionPublisher) {}
 
 void Sit::start(const double timestamp) {
+    startAngles = copyStableStandAngles();
     anglesTrajectory.push_back({{
         {{0.4, -0.7}},
         {{0.4, -0.7}},
@@ -81,6 +82,38 @@ void Sit::restInLastPosition() {
         }
     }
     jointPositionPublisher_->publish(msg);
+}
+
+void Sit::startReturnToStableStand(const double current_timestamp, [[maybe_unused]] const double desired_duration) {
+    // Calculate time for returnal
+    double returnal_duration = 0;
+    for (long unsigned int i=0; i < phase; ++i) {
+        returnal_duration += secondsPerPhase[i];
+    }
+    double in_step_time = 0;
+    if (phase < secondsPerPhase.size()) in_step_time += (current_timestamp - phaseStart);
+    returnal_duration += in_step_time;
+
+    phase = secondsPerPhase.size() - phase;
+    if (phase > 0) phase--;
+    phaseStart = current_timestamp - in_step_time;
+
+    std::reverse(anglesTrajectory.begin(), anglesTrajectory.end());
+    if (phase == 0) {
+        long unsigned int n = anglesTrajectory.size()-1;
+        IKSolver::JointAngles copy;
+        std::copy(std::begin(anglesTrajectory[n]), std::end(anglesTrajectory[n]), copy.begin());
+    }
+
+    stableStandReachedTimestamp = current_timestamp + returnal_duration + 0.05;
+}
+
+void Sit::returnToStableStand(const double timestamp) {
+    execute(timestamp);
+}
+
+bool Sit::returnedToStableStand(const double timestamp) {
+    return timestamp >= stableStandReachedTimestamp;
 }
 
 std::string Sit::getName() const {

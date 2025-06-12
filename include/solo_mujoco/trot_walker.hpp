@@ -19,6 +19,9 @@ public:
     TrotWalker(std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>> jointPositionPublisher);
 
     void execute(const double timestamp) override;
+    void startReturnToStableStand(const double current_timestamp, const double desired_duration) override;
+    void returnToStableStand(const double timestamp);
+    bool returnedToStableStand(const double timestamp) override;
     std::string getName() const override;
 };
 }

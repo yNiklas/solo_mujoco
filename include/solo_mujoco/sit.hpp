@@ -13,16 +13,12 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr jointPositionPublisher_;
     IKSolver ik_solver;
 
-    IKSolver::JointAngles startAngles = {{
-        {{0.4, -0.7}},
-        {{0.4, -0.7}},
-        {{0.4, -0.7}},
-        {{0.4, -0.7}}
-    }};
+    IKSolver::JointAngles startAngles;
     std::vector<IKSolver::JointAngles> anglesTrajectory;
     std::vector<double> secondsPerPhase;
     long unsigned int phase = 0;
     double phaseStart = 0; // timestamp in seconds
+    double stableStandReachedTimestamp = 0; // when the stable stand is reached after `returnToStableStand` was called
 
     void restInLastPosition();
 
@@ -31,6 +27,9 @@ public:
 
     void start(const double timestamp) override;
     void execute(const double timestamp) override;
+    void startReturnToStableStand(const double current_timestamp, const double desired_duration) override;
+    void returnToStableStand(const double timestamp) override;
+    bool returnedToStableStand(const double timestamp) override;
     std::string getName() const override;
 };
 }
