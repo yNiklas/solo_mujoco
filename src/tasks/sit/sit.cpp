@@ -6,6 +6,7 @@ Sit::Sit(std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>> jo
 
 void Sit::start(const double timestamp) {
     startAngles = copyStableStandAngles();
+    anglesTrajectory.clear();
     anglesTrajectory.push_back({{
         {{0.4, -0.7}},
         {{0.4, -0.7}},
