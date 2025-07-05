@@ -68,6 +68,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tasks/walking/trot_walker.cpp
   src/tasks/walking/ik_solver.cpp
   src/tasks/sit/sit.cpp
+  src/tasks/steer/steer.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
