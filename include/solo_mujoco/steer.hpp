@@ -23,6 +23,11 @@ private:
     IKSolver::FootTargets computeFootTargets(const double timestamp);
 
 public:
+    enum SteerDirection {
+        LEFT,
+        RIGHT
+    };
+
     Steer(std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>> jointPositionPublisher);
 
     void execute(const double timestamp) override;
@@ -42,13 +47,39 @@ public:
 
         // yaw is 0 for the starting position (along x-axis)
         // yaw is PI and -PI for 180° (when robots looks in -x direction)
-        // yaww is negative for the south direction (when robot looks in -y direction)
+        // yaw is negative for the south direction (when robot looks in -y direction)
         double yaw = std::atan2(siny_cosp, cosy_cosp);
-        currentYawAngleInDeg = yaw * (180 / 3.141592);
+        currentYawAngleInDeg = yaw * (180 / M_PI);
     }
 
     void steeringAngleCallback(const std_msgs::msg::Float64::SharedPtr msg) {
         targetYawAngleInDeg = msg->data;
+    }
+
+    bool reachedDestination() {
+        return std::abs(targetYawAngleInDeg-currentYawAngleInDeg) < 5;
+    }
+
+    SteerDirection steerDirection() {
+        if (targetYawAngleInDeg >= 0 && currentYawAngleInDeg >= 0) {
+            return targetYawAngleInDeg < currentYawAngleInDeg ? LEFT : RIGHT;
+        } else if (targetYawAngleInDeg < 0 && currentYawAngleInDeg < 0) {
+            return currentYawAngleInDeg < targetYawAngleInDeg ? LEFT : RIGHT;
+        } else {
+            if (targetYawAngleInDeg >= 0) {
+                if (targetYawAngleInDeg <= 90) {
+                    return targetYawAngleInDeg > 180-std::abs(currentYawAngleInDeg) ? RIGHT : LEFT;
+                } else {
+                    return 180-targetYawAngleInDeg > std::abs(currentYawAngleInDeg) ? LEFT: RIGHT;
+                }
+            } else {
+                if (currentYawAngleInDeg <= 90) {
+                    return currentYawAngleInDeg > 180-std::abs(targetYawAngleInDeg) ? LEFT : RIGHT;
+                } else {
+                    return 180-currentYawAngleInDeg > std::abs(targetYawAngleInDeg) ? RIGHT: LEFT;
+                }
+            }
+        }
     }
 };
 }

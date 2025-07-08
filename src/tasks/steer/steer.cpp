@@ -5,12 +5,22 @@ Steer::Steer(std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Float64MultiArray>
 
 IKSolver::FootTargets Steer::computeFootTargets(const double timestamp) {
     double t = timestamp;
-    std::array<std::array<double, 4>, 4> trajectoryParameters = {{
-        {{1.5, 0.13, 0.03, -0.29}}, // FL: step frequency in 1/s,step length in m, step height in m, ground in the hip coordinate system in m
-        {{1.5, 0.01, 0.03, -0.29}}, // FR
-        {{1.5, 0.13, 0.02, -0.29}}, // HL
-        {{1.5, 0.01, 0.02, -0.29}}, // HR
-    }};
+    std::array<std::array<double, 4>, 4> trajectoryParameters;
+    if (steerDirection() == Steer::SteerDirection::LEFT) {
+        trajectoryParameters = {{
+            {{1.5, 0.01, 0.03, -0.29}}, // FL: step frequency in 1/s,step length in m, step height in m, ground in the hip coordinate system in m
+            {{1.5, 0.13, 0.03, -0.29}}, // FR
+            {{1.5, 0.01, 0.02, -0.29}}, // HL
+            {{1.5, 0.13, 0.02, -0.29}}, // HR
+        }};
+    } else {
+        trajectoryParameters = {{
+            {{1.5, 0.13, 0.03, -0.29}}, // FL: step frequency in 1/s,step length in m, step height in m, ground in the hip coordinate system in m
+            {{1.5, 0.01, 0.03, -0.29}}, // FR
+            {{1.5, 0.13, 0.02, -0.29}}, // HL
+            {{1.5, 0.01, 0.02, -0.29}}, // HR
+        }};
+    }
 
     IKSolver::FootTargets targets; // targets order: FL, FR, HL, HR
     auto compute_target = [&](double phase, double step_length, double step_height, double z_ground) {
@@ -40,8 +50,14 @@ IKSolver::FootTargets Steer::computeFootTargets(const double timestamp) {
 void Steer::execute(const double timestamp) {
     using FootTargets = IKSolver::FootTargets;
     using JointAngles = IKSolver::JointAngles;
-    FootTargets gait_targets = computeFootTargets(timestamp);
-    JointAngles angles = ik_solver.solve(gait_targets);
+    FootTargets gait_targets;
+    JointAngles angles;
+    if (reachedDestination()) {
+        angles = copyStableStandAngles();
+    } else {
+        gait_targets = computeFootTargets(timestamp);
+        angles = ik_solver.solve(gait_targets);
+    }
 
     std_msgs::msg::Float64MultiArray msg;
     msg.data.clear();
