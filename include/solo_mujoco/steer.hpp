@@ -62,7 +62,7 @@ public:
 
     SteerDirection steerDirection() {
         if (targetYawAngleInDeg >= 0 && currentYawAngleInDeg >= 0) {
-            return targetYawAngleInDeg < currentYawAngleInDeg ? LEFT : RIGHT;
+            return targetYawAngleInDeg < currentYawAngleInDeg ? RIGHT : LEFT;
         } else if (targetYawAngleInDeg < 0 && currentYawAngleInDeg < 0) {
             return currentYawAngleInDeg < targetYawAngleInDeg ? LEFT : RIGHT;
         } else {
