@@ -13,6 +13,8 @@ hardware_interface::CallbackReturn RealSoloInterface::on_init(const hardware_int
         return hardware_interface::CallbackReturn::ERROR;
     }
 
+    std::string eth_interface_name = info_.hardware_parameters["eth_interface"];
+
     // Initialize Node for IMU and foot contact publisher
     node = rclcpp::Node::make_shared(NODE_NAME);
     std::chrono::milliseconds publishing_speed(1000 / 60);
@@ -27,8 +29,8 @@ hardware_interface::CallbackReturn RealSoloInterface::on_init(const hardware_int
         rclcpp::spin(node);
     });
 
-    //MasterBoardInterface robot_if("AAAA");
-    //robot_if.Init();
+    MasterBoardInterface robot_if(eth_interface_name);
+    robot_if.Init();
 
     return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -47,7 +49,7 @@ hardware_interface::return_type RealSoloInterface::write(
     for (const auto &[interface_name, joint_desc] : joint_command_interfaces_) {
         double cmd = get_command(interface_name);
         if (!std::isnan(cmd)) {
-            std::cout << "Writing command for " << interface_name << ": " << cmd << std::endl;
+            //std::cout << "Writing command for " << interface_name << ": " << cmd << std::endl;
         }
     }
     return hardware_interface::return_type::OK;

@@ -126,6 +126,7 @@
     <xacro:if value="${hardware_type == 'real'}">
       <hardware>
         <plugin>solo_mujoco/RealSoloInterface</plugin>
+        <param name="eth_interface">$(arg eth_interface)</param>
       </hardware>
     </xacro:if>
   </ros2_control>
