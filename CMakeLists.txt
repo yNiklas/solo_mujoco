@@ -46,6 +46,20 @@ set(MUJOCO_LIBRARIES
 )
 
 #------------------------------------------
+# Master Board SDK
+#------------------------------------------
+set(MASTER_BOARD_SDK_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/master_board_sdk)
+set(MASTER_BOARD_SDK_OBJECT_FILES
+  ${PROJECT_SOURCE_DIR}/master_board_sdk_libs/ESPNOW_manager.o
+  ${PROJECT_SOURCE_DIR}/master_board_sdk_libs/ESPNOW_types.o
+  ${PROJECT_SOURCE_DIR}/master_board_sdk_libs/ETHERNET_types.o
+  ${PROJECT_SOURCE_DIR}/master_board_sdk_libs/Link_manager.o
+  ${PROJECT_SOURCE_DIR}/master_board_sdk_libs/master_board_interface.o
+  ${PROJECT_SOURCE_DIR}/master_board_sdk_libs/motor_driver.o
+  ${PROJECT_SOURCE_DIR}/master_board_sdk_libs/motor.o
+)
+
+#------------------------------------------
 # RPATH
 #------------------------------------------
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -104,6 +118,26 @@ target_link_libraries(mujoco_simulator PUBLIC
   ${GLFW_LIBRARIES}
 )
 
+# Real Solo Interface Library
+add_library(real_solo_interface SHARED
+  src/real_solo_interface.cpp
+)
+target_include_directories(real_solo_interface PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  ${MASTER_BOARD_SDK_INCLUDE_DIR}
+)
+ament_target_dependencies(real_solo_interface PUBLIC
+  hardware_interface
+  pluginlib
+  rclcpp
+)
+target_link_libraries(real_solo_interface PUBLIC
+  ${MASTER_BOARD_SDK_OBJECT_FILES}
+)
+
+pluginlib_export_plugin_description_file(hardware_interface real_solo_interface.xml)
+
 # Walking Planner Node
 #add_executable(footstep_planner_node
 #  src/walking/footstep_planner_node.cpp
@@ -148,6 +182,11 @@ install(TARGETS
 
 install(TARGETS
   mujoco_simulator
+  DESTINATION lib
+)
+
+install(TARGETS
+  real_solo_interface
   DESTINATION lib
 )
 

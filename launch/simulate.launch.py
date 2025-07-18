@@ -42,8 +42,8 @@ def generate_launch_description():
                 ]
             ),
             " ",
-            "sim:=true" # Needed in URDF file to activate hardware plugin
-            " ",
+            "hardware_type:=sim" # Needed in URDF file to activate hardware plugin. Choose 'sim' or 'real'
+            " "
             "mujoco_world_xml_path:=", mujoco_model_xml_path,
             " ",
             "meshes_path:=",

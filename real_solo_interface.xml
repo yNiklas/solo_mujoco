@@ -1,0 +1,9 @@
+<library path="real_solo_interface">
+  <class name="solo_mujoco/RealSoloInterface"
+         type="solo_mujoco::RealSoloInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+        Interface to the real Solo8 robot
+    </description>
+  </class>
+</library>

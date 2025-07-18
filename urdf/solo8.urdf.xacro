@@ -113,11 +113,19 @@
     <xacro:joint_interface name="HR_HFE" p="10" d="0.1" t="0.5"/>
     <xacro:joint_interface name="HR_KFE" p="10" d="0.1" t="0.5"/>
 
-    <xacro:if value="$(arg sim)">
+    <xacro:arg name="hardware_type" default="sim"/>
+    <xacro:property name="hardware_type" value="$(arg hardware_type)"/>
+    <xacro:if value="${hardware_type == 'sim'}">
       <hardware>
         <plugin>solo_mujoco/Simulator</plugin>
         <param name="mujoco_world_xml_path">$(arg mujoco_world_xml_path)</param>
         <param name="meshes_path">$(arg meshes_path)</param>
+      </hardware>
+    </xacro:if>
+
+    <xacro:if value="${hardware_type == 'real'}">
+      <hardware>
+        <plugin>solo_mujoco/RealSoloInterface</plugin>
       </hardware>
     </xacro:if>
   </ros2_control>
