@@ -27,7 +27,7 @@ def generate_launch_description():
             " ",
             "hardware_type:=real" # Needed in URDF file to activate hardware plugin. Choose 'sim' or 'real'
             " "
-            "eth_interface:=", "eth0"
+            "eth_interface:=", LaunchConfiguration('eth_interface', default='eth0'),
         ]
     )
     robot_description = {
