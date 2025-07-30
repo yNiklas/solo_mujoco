@@ -190,15 +190,18 @@ void RealSoloInterface::publishImuData() {
 
     imu_data_t imu_data = robot_if->get_imu_data();
 
-    imu_msg.linear_acceleration.x = imu_data.accelerometer[0];
-    imu_msg.linear_acceleration.y = imu_data.accelerometer[1];
-    imu_msg.linear_acceleration.z = imu_data.accelerometer[2];
+    imu_msg.linear_acceleration.x = imu_data.linear_acceleration[0];
+    imu_msg.linear_acceleration.y = imu_data.linear_acceleration[1];
+    imu_msg.linear_acceleration.z = imu_data.linear_acceleration[2];
 
     imu_msg.angular_velocity.x = imu_data.gyroscope[0];
     imu_msg.angular_velocity.y = imu_data.gyroscope[1];
     imu_msg.angular_velocity.z = imu_data.gyroscope[2];
 
-    // todo: set orientation from IMU quaternion
+    imu_msg.orientation.w = imu_data.quaternion[0];
+    imu_msg.orientation.x = imu_data.quaternion[1];
+    imu_msg.orientation.y = imu_data.quaternion[2];
+    imu_msg.orientation.z = imu_data.quaternion[3];
 
     imu_publisher->publish(imu_msg);
 }
