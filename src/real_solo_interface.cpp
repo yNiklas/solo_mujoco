@@ -12,6 +12,17 @@ hardware_interface::CallbackReturn RealSoloInterface::on_init(const hardware_int
         return hardware_interface::CallbackReturn::ERROR;
     }
 
+    for (const auto &joint : info_.joints) {
+        double p = std::stod(joint.parameters.at("p"));
+        double d = std::stod(joint.parameters.at("d"));
+        double t = std::stod(joint.parameters.at("t"));
+        joint_name_to_k_p[joint.name] = p;
+        joint_name_to_k_d[joint.name] = d;
+        joint_name_to_k_t[joint.name] = t;
+    }
+    std::string eth_interface_name = info_.hardware_parameters["eth_interface"];
+    initializeRobot(eth_interface_name); // Initialize the robot before the publishers getting active
+
     // Initialize Node for IMU and foot contact publisher
     node = rclcpp::Node::make_shared(NODE_NAME);
     std::chrono::milliseconds publishing_speed(1000 / 60);
@@ -26,17 +37,6 @@ hardware_interface::CallbackReturn RealSoloInterface::on_init(const hardware_int
         rclcpp::spin(node);
     });
 
-    for (const auto &joint : info_.joints) {
-        double p = std::stod(joint.parameters.at("p"));
-        double d = std::stod(joint.parameters.at("d"));
-        double t = std::stod(joint.parameters.at("t"));
-        joint_name_to_k_p[joint.name] = p;
-        joint_name_to_k_d[joint.name] = d;
-        joint_name_to_k_t[joint.name] = t;
-    }
-    std::string eth_interface_name = info_.hardware_parameters["eth_interface"];
-    initializeRobot(eth_interface_name);
-
     control_thread = std::thread(&RealSoloInterface::control, this, 10);
     control_thread.detach();
 
@@ -45,7 +45,10 @@ hardware_interface::CallbackReturn RealSoloInterface::on_init(const hardware_int
 
 void RealSoloInterface::initializeRobot(const std::string eth_interface) {
     // Initialize the robot with the given Ethernet interface
-    robot_if = new MasterBoardInterface(eth_interface, false);
+    std::cout << "Initializing robot on interface: " << eth_interface << std::endl;
+    robot_if = std::make_unique<MasterBoardInterface>(eth_interface);
+    std::cout << "Robot interface initialized." << std::endl;
+    
     if (!robot_if->Init()) {
         RCLCPP_ERROR(node->get_logger(), "Failed to initialize robot on interface %s", eth_interface.c_str());
     } else {
@@ -178,7 +181,6 @@ hardware_interface::return_type RealSoloInterface::write(
         }
         interface_name_to_target_mutex.unlock();
     }
-    
     return hardware_interface::return_type::OK;
 }
 

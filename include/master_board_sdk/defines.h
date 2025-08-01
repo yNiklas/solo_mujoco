@@ -2,7 +2,7 @@
 #define DEFINES_H
 
 #include "master_board_sdk/protocol.h"
-#define N_SLAVES 4
+#define N_SLAVES 6
 
 struct dual_motor_driver_sensor_packet_t
 {

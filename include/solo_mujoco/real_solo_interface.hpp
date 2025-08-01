@@ -35,7 +35,7 @@ private:
     std::shared_ptr<rclcpp::Node> node;
     std::thread publisher_thread;
 
-    MasterBoardInterface* robot_if = nullptr;
+    std::unique_ptr<MasterBoardInterface> robot_if;
     void initializeRobot(const std::string eth_interface);
     std::map<std::string, double> joint_name_to_k_p;
     std::map<std::string, double> joint_name_to_k_d;
