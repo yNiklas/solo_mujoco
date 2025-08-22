@@ -50,9 +50,12 @@ void RealSoloInterface::initializeRobot(const std::string eth_interface) {
     std::cout << "Robot interface initialized." << std::endl;
     
     if (!robot_if->Init()) {
-        RCLCPP_ERROR(node->get_logger(), "Failed to initialize robot on interface %s", eth_interface.c_str());
+        std::cout << "Failed to initialize robot on interface " << eth_interface.c_str() << std::endl;
+        // Quit program
+        rclcpp::shutdown();
+        return;
     } else {
-        RCLCPP_INFO(node->get_logger(), "Robot initialized successfully on interface %s", eth_interface.c_str());
+        std::cout << "Robot initialized successfully on interface " << eth_interface.c_str() << std::endl;
     }
 
     for (int i = 0; i < N_SLAVES_CONTROLLED; ++i) {
@@ -74,7 +77,7 @@ void RealSoloInterface::initializeRobot(const std::string eth_interface) {
 	}
 
     if (robot_if->IsTimeout()) {
-        RCLCPP_ERROR(node->get_logger(), "Timeout while waiting for robot initialization.");
+        std::cout << "Timeout while waiting for robot initialization." << std::endl;
         return;
     }
 
@@ -82,16 +85,16 @@ void RealSoloInterface::initializeRobot(const std::string eth_interface) {
     std::this_thread::sleep_for(std::chrono::milliseconds(4000));
     for (int i = 0; i < N_SLAVES_CONTROLLED * 2; ++i) {
         if (robot_if->motor_drivers[i / 2].IsConnected()) {
-            RCLCPP_INFO(node->get_logger(), "Motor driver board %d connected successfully.", i);
+            std::cout << "Motor driver board " << i << " connected successfully." << std::endl;
         } else {
-            RCLCPP_ERROR(node->get_logger(), "Motor driver board %d is not connected.", i);
+            std::cout << "Motor driver board " << i << " is not connected." << std::endl;
             continue;
         }
 
         if (robot_if->motors[i].IsEnabled() && robot_if->motors[i].IsReady()) {
-            RCLCPP_INFO(node->get_logger(), "Motor %d is enabled.", i);
+            std::cout << "Motor " << i << " is enabled." << std::endl;
         } else {
-            RCLCPP_ERROR(node->get_logger(), "Motor %d is not enabled.", i);
+            std::cout << "Motor " << i << " is not enabled." << std::endl;
         }
     }
 }
