@@ -60,5 +60,17 @@ To change the executed task, use the following services. All services accept a `
 
 
 ## Installation
-1. Make sure to place a MuJoCo release somewhere in the ROS2 workspace and reference it with the `MUJOCO_DIR` environment variable.
-2. Make sure to have the `rclcpp`, `pluginlib`, `hardware_interface`, `glfw3` and `GLEW` packages installed. See the [CMakeLists.txt](CMakeLists.txt) file for details.
+1. Install ROS2, inclusive ros-dev-tools.
+2. Make sure to place a MuJoCo release somewhere in the ROS2 workspace and reference it with the `MUJOCO_DIR` environment variable.
+3. Install dependencies:
+```
+xacro
+libglfw3-dev
+ros2-control
+ros2-controllers
+```
+
+> Before starting the program, disconnect the programmer if connected.
+
+> If the program start (of the task controller node) fails due to an error regarding `libsolo_mujoco.so`, try:
+``export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<WORKSPACE_PATH>/install/solo_mujoco/lib/solo_mujoco/libsolo_mujoco.so``
